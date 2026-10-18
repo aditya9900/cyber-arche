@@ -69,5 +69,5 @@ All data in this repo is synthetic.
 
 ## Development Notes
 
-AI-assisted development tools, including OpenAI Codex and Claude Code, were used to support
+AI-assisted development tools, such as Claude Code, were used to support
 implementation, debugging, and development.
