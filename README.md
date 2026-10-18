@@ -25,6 +25,9 @@ HOST=0.0.0.0 ./run.sh
 
 It prints the address to open, e.g. `http://192.168.1.20:8000/demo`.
 
+Online preview: the repo deploys to Netlify as-is (`netlify.toml`). That build runs in demo mode,
+in the browser on a built-in sample case; real analysis needs the server above.
+
 Demo flow: open **Demo chat**, send / edit / delete a message, click **Seize device**. The case
 opens with the deleted message back in the conversation, the edit on the timeline, and the hex
 view of the exact bytes. The **Backup case** (loaded automatically) shows secure_delete cover-up

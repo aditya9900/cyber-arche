@@ -1,0 +1,16 @@
+# Netlify hosts the web interface in demo mode: it runs entirely in the browser on the
+# built-in sample case (labelled "mock data"). Real analysis needs the Python server (./run.sh).
+[build]
+  base = "web"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  VITE_USE_MOCKS = "1"
+  NODE_VERSION = "22"
+
+# Single-page app: every path (/demo, /cases/...) loads index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
