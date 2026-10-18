@@ -1,0 +1,10 @@
+THE BROWSER TRAIL (it's not just chat apps)
+Upload: History
+
+Story: a Chrome-style browser history. Two searches were deleted from it.
+
+What to show:
+1. No Conversation tab (it's not a chat). Open Records, filter "deleted".
+2. The two deleted searches come back: "how to delete chat history" and
+   "does deleting messages really delete them".
+3. Point: "Same engine, any SQLite file: browsers, phones, chat apps."

@@ -1,0 +1,13 @@
+THE EDITED ALIBI (best for the timeline slider)
+Upload: messages.db AND messages.db-wal
+
+Story: Priya asks Jonah where he was when the server room was opened.
+Jonah keeps rewriting his alibi, then sends a confession and deletes it.
+
+What to show:
+1. Conversation: Jonah's first message shows "Edited". Expand it: three
+   versions, "Watched a movie" -> "Studying" -> "Studying, then asleep by 11",
+   each with the commit it was live in.
+2. The deleted slip: "ok fine I went back for my charger, 5 minutes max",
+   bracketed between 09:40 and 09:44.
+3. Drag the slider back commit by commit and watch the story change.

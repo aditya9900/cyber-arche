@@ -1,0 +1,4 @@
+Upload: messages.db ONLY (same database as test 02, without its -wal file)
+Expect: almost nothing. In WAL mode the main file is a 1-page stub until a
+checkpoint, so every message lives in the -wal file. Shows why investigators
+must seize the -wal alongside the database.

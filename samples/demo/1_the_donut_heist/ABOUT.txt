@@ -1,0 +1,16 @@
+THE DONUT HEIST (the main demo case)
+Upload: messages.db AND messages.db-wal
+
+Story: Mara and Theo plan to take the last box of donuts at a hackathon.
+Halfway through, Theo turns on secure delete and wipes two messages.
+
+What to show:
+1. Conversation: "Got the box. Meet at the east stairs." is back, outlined
+   red, recovered from a WAL frame. Bracket: deleted after 14:04, before 14:05.
+2. Theo's message 6 was edited: "I'll distract the mentor..." became an
+   innocent "I'll ask the mentor a question about the workshop."
+3. "Maple. With sprinkles. It's a sign." was deleted before secure delete,
+   and is rebuilt from a freeblock even though its first 4 bytes were overwritten.
+4. Findings: CU1 secure-delete pattern, CU2 rowids 8 and 9 deleted with no
+   trace. "Zeroed bytes are evidence too."
+5. Click any message for the hex view.

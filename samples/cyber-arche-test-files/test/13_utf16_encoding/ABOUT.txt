@@ -1,0 +1,4 @@
+Upload: messages.db
+Database text encoding is UTF-16le instead of UTF-8.
+Expect: 8 live, rowid 9 ("Ça marche. Ünïcödé ✓ 🍩") recovered and decoded correctly.
+Finding: CU3 (info: the newest row was deleted, and it was recovered).

@@ -1,0 +1,3 @@
+Upload: encrypted.db (random bytes, like a SQLCipher database)
+Expect: a "No SQLite header" finding and no records. Decryption is out of
+scope; the tool says so instead of guessing.

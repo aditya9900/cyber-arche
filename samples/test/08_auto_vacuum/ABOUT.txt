@@ -1,0 +1,4 @@
+Upload: messages.db
+auto_vacuum=FULL (header offset 52 is non-zero).
+Expect: 15 live, rowid 6 rebuilt from a freeblock. Finding CU5 (auto_vacuum
+enabled, info).

@@ -1,0 +1,191 @@
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import type { AppConfig, CaseDetail, Change, Commit, Finding, RecoveredRecord, Status } from "../contracts";
+import { api } from "../api";
+import { STATUS_LABEL, classNames, formatBytes, formatDateTime } from "../lib/format";
+import { HexProvider } from "../components/HexViewer";
+import ConversationView from "../components/ConversationView";
+import RecordsTable from "../components/RecordsTable";
+import { FindingsTab, SummaryTab, TimelineTab } from "../components/CaseTabs";
+import { CopyButton, ErrorBox, Loading, Tag, TopBar } from "../components/ui";
+
+interface Data {
+  detail: CaseDetail;
+  records: RecoveredRecord[];
+  commits: Commit[];
+  changes: Change[];
+  findings: Finding[];
+  config: AppConfig;
+}
+
+type TabId = "conversation" | "records" | "timeline" | "findings" | "summary";
+
+export default function CaseView() {
+  const { id = "" } = useParams();
+  const [data, setData] = useState<Data | null>(null);
+  const [err, setErr] = useState<unknown>(null);
+  const [params, setParams] = useSearchParams();
+
+  useEffect(() => {
+    let cancelled = false;
+    setData(null);
+    setErr(null);
+    Promise.all([
+      api.caseDetail(id),
+      api.records(id),
+      api.commits(id),
+      api.changes(id),
+      api.findings(id).catch(() => [] as Finding[]),
+      api.config().catch(() => ({ ai_available: false, model: null }) as AppConfig),
+    ])
+      .then(([detail, records, commits, changes, findings, config]) => {
+        if (!cancelled) setData({ detail, records, commits, changes, findings, config });
+      })
+      .catch((e) => !cancelled && setErr(e));
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const reportLink = (
+    <a className="btn-ghost" href={api.reportUrl(id)} target="_blank" rel="noreferrer">
+      Export report ↗
+    </a>
+  );
+
+  if (err)
+    return (
+      <>
+        <TopBar />
+        <div className="mx-auto max-w-3xl p-6">
+          <ErrorBox error={err} />
+        </div>
+      </>
+    );
+  if (!data)
+    return (
+      <>
+        <TopBar />
+        <Loading label="Analyzing case" />
+      </>
+    );
+
+  const { detail, records, commits, changes, findings, config } = data;
+  const chat = detail.chat;
+  const tabs: { id: TabId; label: string; count?: number }[] = [
+    ...(chat ? [{ id: "conversation" as const, label: "Conversation" }] : []),
+    { id: "records", label: "Records", count: records.length },
+    { id: "timeline", label: "Timeline", count: Math.max(0, commits.length - 1) },
+    { id: "findings", label: "Findings", count: findings.length },
+    ...(config.ai_available ? [{ id: "summary" as const, label: "AI summary" }] : []),
+  ];
+  const requested = params.get("tab") as TabId | null;
+  const tab: TabId = tabs.some((t) => t.id === requested) ? requested! : tabs[0].id;
+  const setTab = (t: TabId) => setParams({ tab: t }, { replace: true });
+
+  return (
+    <HexProvider caseId={id}>
+      <TopBar>{reportLink}</TopBar>
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-5">
+        <CaseHeader detail={detail} findings={findings} />
+        <nav className="sticky top-[49px] z-20 -mx-4 mb-4 mt-5 overflow-x-auto border-b border-slate-200 bg-slate-50/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-[#0b0f17]/95">
+          <div className="flex gap-1">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={classNames(
+                  "-mb-px whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium",
+                  tab === t.id
+                    ? "border-sky-500 text-slate-900 dark:text-white"
+                    : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200",
+                )}
+              >
+                {t.label}
+                {t.count !== undefined && <span className="ml-1.5 font-mono text-xs text-slate-400">{t.count}</span>}
+              </button>
+            ))}
+          </div>
+        </nav>
+        {tab === "conversation" && chat && (
+          <ConversationView caseId={id} chat={chat} records={records} commits={commits} changes={changes} />
+        )}
+        {tab === "records" && <RecordsTable tables={detail.tables} records={records} timestampCol={chat?.timestamp ?? null} />}
+        {tab === "timeline" && <TimelineTab commits={commits} changes={changes} records={records} chat={chat} />}
+        {tab === "findings" && <FindingsTab findings={findings} />}
+        {tab === "summary" && config.ai_available && <SummaryTab caseId={id} records={records} />}
+      </main>
+    </HexProvider>
+  );
+}
+
+const STATUS_ORDER: Status[] = ["live", "deleted", "prior_version", "stale_copy"];
+const STATUS_TEXT: Record<Status, string> = {
+  live: "text-emerald-600 dark:text-emerald-400",
+  deleted: "text-red-600 dark:text-red-400",
+  prior_version: "text-amber-600 dark:text-amber-400",
+  stale_copy: "text-slate-500",
+};
+
+function CaseHeader({ detail, findings }: { detail: CaseDetail; findings: Finding[] }) {
+  const m = detail.manifest;
+  const hashErrors = (detail as CaseDetail & { hash_errors?: string[] }).hash_errors ?? [];
+  const high = findings.filter((f) => f.severity === "high").length;
+  return (
+    <section>
+      <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+        <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-xs text-slate-500">CASE {m.case_id}</span>
+            {detail.hashes_verified ? (
+              <span className="pill bg-emerald-600 text-white">✓ hashes verified</span>
+            ) : (
+              <span className="pill bg-red-600 text-white">✗ hash mismatch</span>
+            )}
+            {detail.encrypted && <Tag tone="red">encrypted / not SQLite</Tag>}
+            {high > 0 && <Tag tone="red">{high} high-severity finding{high > 1 ? "s" : ""}</Tag>}
+          </div>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{m.label || "Untitled case"}</h1>
+          <p className="mt-0.5 text-sm text-slate-500">Seized {formatDateTime(m.created)}</p>
+        </div>
+        <div className="flex gap-4">
+          {STATUS_ORDER.map((s) => (
+            <div key={s} className="text-right">
+              <div className={classNames("font-mono text-2xl font-semibold leading-none", STATUS_TEXT[s])}>
+                {detail.stats.status_counts[s] ?? 0}
+              </div>
+              <div className="mt-1 text-[11px] text-slate-500">{STATUS_LABEL[s]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+        {m.files.map((f) => (
+          <div key={f.role + f.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2">
+            <span className="w-16 font-mono text-[11px] uppercase tracking-wider text-slate-500">{f.role}</span>
+            <span className="min-w-[8rem] font-mono text-sm">{f.name}</span>
+            <span className="w-20 font-mono text-xs text-slate-500">{formatBytes(f.bytes)}</span>
+            <span className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:flex-1">
+              <span className="whitespace-nowrap text-[10px] font-semibold text-slate-400">SHA-256</span>
+              <code className="min-w-0 break-all font-mono text-[11.5px] text-slate-700 dark:text-slate-300">{f.sha256}</code>
+              <CopyButton text={f.sha256} />
+            </span>
+          </div>
+        ))}
+      </div>
+      {(hashErrors.length > 0 || detail.errors.length > 0) && (
+        <details className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+          <summary className="cursor-pointer">
+            {hashErrors.length + detail.errors.length} parser/hash message{hashErrors.length + detail.errors.length > 1 ? "s" : ""}
+          </summary>
+          <ul className="mt-1 list-disc pl-5 font-mono">
+            {[...hashErrors, ...detail.errors].map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+}

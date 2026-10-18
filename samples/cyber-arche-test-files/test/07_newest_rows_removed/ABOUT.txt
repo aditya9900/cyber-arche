@@ -1,0 +1,5 @@
+Upload: messages.db
+AUTOINCREMENT table; the three newest messages deleted with secure_delete on.
+Expect: 13 live, nothing recovered. Findings CU3 (sqlite_sequence says 16
+rowids were issued, highest live is 13, none recovered) and CU2. No CU1: rows
+deleted from the top of a page zero unallocated space, not a freeblock.

@@ -1,0 +1,4 @@
+Upload: messages.db
+Rowid 6 is a ~6 KB message that spills onto overflow pages.
+Expect: 6 live; rowid 6 is read in full by following its overflow chain.
+Rowid 2 deleted and recovered. Tests the overflow-page math.

@@ -1,0 +1,5 @@
+Upload: messages.db AND messages.db-journal
+journal_mode=PERSIST keeps the pre-change page in the journal after commit.
+Expect: 7 live, rowid 3 deleted, found in the journal (and rebuilt from a
+freeblock in the main file). Copies of live rows in the journal are
+labelled stale copies, never "deleted".

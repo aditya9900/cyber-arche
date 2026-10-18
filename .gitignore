@@ -1,0 +1,14 @@
+cases/
+.env
+.venv/
+node_modules/
+fixtures/out/
+__pycache__/
+*.egg-info/
+web/dist/
+demo/live/
+.ruff_cache/
+.pytest_cache/
+demo/.demo.lock
+.DS_Store
+samples/*.zip

@@ -1,0 +1,6 @@
+Upload: messages.db
+Rollback-journal mode (no WAL). Deleted rowids 16, 5, 9 and 10.
+Expect: 12 live, 4 deleted. Rowid 16 comes from unallocated space; 5, 9 and 10
+come from freeblocks (rebuilt: their first 4 bytes were overwritten), with
+rowids inferred from neighbouring timestamps. Finding: CU3 (info: the
+newest row was deleted, and it was recovered).

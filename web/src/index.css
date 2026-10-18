@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-[#0b0f17] dark:text-slate-200;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-[#111827];
+  }
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn border-sky-600 bg-sky-600 text-white hover:bg-sky-500 dark:border-sky-500 dark:bg-sky-600;
+  }
+  .btn-ghost {
+    @apply btn border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[11px] font-medium leading-none;
+  }
+  .label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
+  }
+  .hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.55) 0 3px,
+      rgba(239, 68, 68, 0.15) 3px 6px
+    );
+  }
+}
+
+.hexgrid {
+  font-variant-ligatures: none;
+}

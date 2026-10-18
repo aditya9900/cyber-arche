@@ -1,0 +1,13 @@
+THE CLEAN SWEEP (absence of evidence is evidence)
+Upload: messages.db
+
+Story: Sam and Rhea delete the incriminating messages, then rebuild the
+database with VACUUM so no residue survives.
+
+What to show:
+1. Nothing is recoverable: VACUUM rewrote every page.
+2. Findings: CU2 says rowids 3, 4, 5 and 7 are missing with no residue;
+   CU4 says the file is consistent with a VACUUM (gaps, yet no freeblocks,
+   freelist pages or fragments anywhere).
+3. Point: "We can't show what they said, but we can show that someone
+   removed it and then scrubbed the file."

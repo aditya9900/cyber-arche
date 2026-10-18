@@ -1,0 +1,4 @@
+Upload: messages.db
+Rows deleted, then VACUUM rebuilt the file.
+Expect: 14 live, nothing recovered. Findings CU2 (rowids 4 and 11 missing)
+and CU4 (possible VACUUM: gaps but no freeblocks, freelist or fragments).

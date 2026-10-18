@@ -1,0 +1,2 @@
+Upload: messages.db (test 01 with 60 random bytes flipped in the data pages)
+Expect: no crash. Some rows decode, damaged ones are skipped or scored lower.

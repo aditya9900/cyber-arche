@@ -1,0 +1,4 @@
+Upload: messages.db
+secure_delete=ON zeroes deleted bytes.
+Expect: 13 live, nothing recovered. Findings CU1 (secure-delete pattern:
+zeroed freeblocks) and CU2 (rowids 8, 9, 12 missing with no residue).

@@ -1,0 +1,6 @@
+Upload: messages.db AND messages.db-wal
+WAL mode, nothing checkpointed. Every insert, the edit of rowid 4 and the
+deletes of rowids 10 and 6 are separate commits.
+Expect: 8 live, 2 deleted, 1 prior version (rowid 4's old text). The timeline
+slider steps through every commit; scrub back before the delete to see it live.
+Finding: CU3 (info: the newest row was deleted, and it was recovered).

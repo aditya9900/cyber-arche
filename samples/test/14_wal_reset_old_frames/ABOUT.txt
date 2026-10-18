@@ -1,0 +1,5 @@
+Upload: messages.db AND messages.db-wal
+The WAL was checkpointed and restarted, then one new message written. New
+frames overwrite the start of the file; frames after them carry the old salts.
+Expect: finding CU6 (WAL history: checkpoint sequence and earlier-generation
+frames). Old-generation frames appear as a lower-confidence source.

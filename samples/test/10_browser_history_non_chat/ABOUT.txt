@@ -1,0 +1,3 @@
+Upload: History
+A browser-history style table, not a chat. No Conversation tab: use Records.
+Expect: 6 live, 2 deleted (the two "how to delete chat history" searches).
