@@ -66,3 +66,8 @@ Evidence files are copied, SHA-256 hashed and set read-only on intake; hashes ar
 report export. A carved copy of a live row is a `stale_copy`, never `deleted`. WAL commits are
 never given wall-clock times; changes are bracketed between the app's own timestamps.
 All data in this repo is synthetic.
+
+## Development Notes
+
+AI-assisted development tools, including OpenAI Codex and Claude Code, were used to support
+implementation, debugging, and development.
