@@ -7,6 +7,9 @@ log as a scrubbable commit-by-commit history, and proves every recovered record 
 provenance. The parser is written from the SQLite file-format spec in pure Python; evidence is
 never opened with the SQLite library. Full spec: [docs/BLUEPRINT.md](docs/BLUEPRINT.md).
 
+**Live preview:** [cyber-arche.netlify.app](https://cyber-arche.netlify.app/) (demo mode with sample data;
+run it locally for real analysis).
+
 ## Run it
 
 ```bash
@@ -25,8 +28,9 @@ HOST=0.0.0.0 ./run.sh
 
 It prints the address to open, e.g. `http://192.168.1.20:8000/demo`.
 
-Online preview: the repo deploys to Netlify as-is (`netlify.toml`). That build runs in demo mode,
-in the browser on a built-in sample case; real analysis needs the server above.
+Online preview: [cyber-arche.netlify.app](https://cyber-arche.netlify.app/), deployed to Netlify from this repo
+(`netlify.toml`). That build runs in demo mode, in the browser on a built-in sample case; real
+analysis needs the server above.
 
 Demo flow: open **Demo chat**, send / edit / delete a message, click **Seize device**. The case
 opens with the deleted message back in the conversation, the edit on the timeline, and the hex
