@@ -356,7 +356,6 @@ Evidence only moves forward: the demo app is the one place sqlite3 touches a dat
 
 ```
 cyber-arche/
-  AGENTS.md              # agent instructions
   README.md
   engine/cyber_arche/
     varint.py            # read_varint
@@ -455,7 +454,7 @@ Adjustments: +0.05 for an exact fit to the region's end; -0.15 for an affinity m
 
 ### Project guidelines
 
-The forensic rules are what expert judges will probe, so they are non-negotiable; the engineering rules keep four people and their AI agents from colliding.
+The forensic rules are what expert judges will probe, so they are non-negotiable; the engineering rules keep four people from colliding.
 
 #### Forensic soundness rules
 
@@ -510,7 +509,7 @@ Each lane is one person's branch; merges happen only at the dashed gates, and no
 
 Hour 1: skeleton
 
-- ☐ Repo, AGENTS.md, contracts and .env.example committed
+- ☐ Repo, contracts and .env.example committed
 - ☐ make_fixtures.py produces at least three fixture databases
 - ☐ Web app renders mock records end to end
 Hour 3: real data flowing
@@ -611,131 +610,3 @@ The resume line that lands is the from-spec parser plus provenance; claim only w
 - Keep the repo public with screenshots, a 60-second demo GIF, the architecture diagram and a one-command setup.
 - Write a short post explaining how SQLite deletion leaves data behind; that post is what recruiters and forensics engineers will read and share.
 - Mention Cipher Tech's prize, if you win it, when applying there; they hire for exactly this work.
-### AI coding agent instructions
-
-Write the agent instructions once in AGENTS.md, put this blueprint in the repo, then give each person's coding agent the kickoff prompts for their role.
-
-#### Setup (5 minutes, one person)
-
-- Export this doc as Markdown and save it in the repo as docs/BLUEPRINT.md, so agents can read the full spec.
-- Save the block below as AGENTS.md at the repo root.
-- If your coding agent reads a different instructions file name, point that file at AGENTS.md so every tool shares one source of truth.
-- Confirm once that each agent has loaded the instructions.
-#### AGENTS.md (copy as-is)
-
-```
-# Cyber Arche - agent instructions
-
-## Mission
-Forensic tool that recovers deleted and edited records from SQLite databases
-(main file, -wal, -journal) with byte-level provenance for every record.
-Built by 4 people in 12 hours at Technica 2026. Full spec: docs/BLUEPRINT.md.
-Before any task, read the BLUEPRINT section named in the prompt.
-
-## Hard rules (never break)
-1. Never open evidence with sqlite3 or any library that can write. The engine
-   parses raw bytes only. sqlite3 is allowed ONLY in demo/, fixtures/, tests that
-   build databases, and schema.py's ':memory:' PRAGMA table_info trick.
-2. Files under cases/*/evidence/ are read-only. Never write, move or re-save them.
-3. Every RecoveredRecord carries Provenance (source, file, page, offsets, length,
-   WAL frame/commit, segments). No provenance, no output.
-4. A record identical to a live row is status "stale_copy", never "deleted".
-5. Cover-up findings say "consistent with", never "proves".
-6. Never invent wall-clock times for WAL commits; bracket with app timestamps.
-7. Synthetic data only. No real personal data anywhere.
-8. Do not edit engine/cyber_arche/models.py or web/src/contracts.ts without
-   asking the human first. They are the shared interface.
-9. Stay inside your role's paths (see Roles). Ask before touching others.
-
-## Stack and commands
-- Engine: Python 3.11+, standard library only. API: FastAPI, uvicorn, pydantic v2.
-- Web: React 18, Vite, TypeScript (strict), Tailwind.
-- Setup: python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
-         cd web && npm install
-- Fixtures: python fixtures/make_fixtures.py   (writes fixtures/out/)
-- Tests: pytest -q        Lint: ruff format . && ruff check .
-- API: uvicorn api.main:app --reload --port 8000
-- Web: cd web && npm run dev   (mock data: VITE_USE_MOCKS=1 npm run dev)
-- Demo: python demo/seed.py
-
-## Roles
-- P1 engine-core: engine/cyber_arche/{varint,header,page,record,btree,schema,carver,reconstruct}.py
-- P2 engine-wal:  engine/cyber_arche/{wal,snapshot,timeline,coverup}.py
-- P3 api-demo:    api/, demo/, fixtures/, engine/cyber_arche/case.py
-- P4 web:         web/
-
-## Conventions
-- Big-endian everywhere, except WAL checksum input words when magic is 0x377f0682.
-- Pure functions over (bytes, offset). Bounds-check every read. Every chain
-  (freeblocks, freelist, overflow, b-tree) gets a visited set and an iteration cap.
-- Corrupt input never crashes: raise ParseError(file_offset, reason), log, continue.
-- All page reads go through one PageSource interface (main file, WAL frame, snapshot k).
-- Type hints and dataclasses; docstrings cite the BLUEPRINT section implemented.
-- Tests first: extend fixtures/make_fixtures.py, write a failing test, implement.
-- Commit after each green run, prefixed engine:, wal:, api:, web:, demo: or docs:.
-
-## Format facts (details in BLUEPRINT "SQLite internals reference")
-- Page N starts at (N-1)*page_size; page 1's b-tree header starts at offset 100.
-- Table leaf 0x0D (8-byte header); table interior 0x05 (12-byte header).
-- Freeblock = [next u16][size u16 incl. header]; it overwrites the first 4 bytes
-  of the deleted cell.
-- Record = varint header size, varint serial types, body. INTEGER PRIMARY KEY is
-  stored as NULL; use the cell's rowid.
-- WAL = 32-byte header + frames (24-byte header + page). Valid frame: salts match,
-  pgno > 0, cumulative checksum matches. Commit frame: non-zero db size field.
-- Demo app: journal_mode=WAL, wal_autocheckpoint=0, one long-lived connection;
-  seize files while it is still open.
-
-## Definition of done
-- pytest -q and ruff check pass; npm run build succeeds.
-- Works on fixtures/cases/backup and on a fresh demo seizure.
-- Anything new on screen shows provenance. README updated if commands changed.
-- End every task with: what changed, test output, what's next.
-```
-
-#### Standing suffix for every prompt
-
-Append this to every prompt you give an agent:
-
-Work in small steps. Write or extend tests first, then implement. Run pytest -q (and npm run build for web work) and show me the output. Do not modify the contracts. Finish with a summary of what changed and the next step, then commit with the area prefix.
-
-#### Hour-0 bootstrap prompt (one person runs it once)
-
-Read AGENTS.md and docs/BLUEPRINT.md, sections "Architecture" and "Project guidelines". Create the repository skeleton exactly as in "Repository layout": a pyproject.toml that packages cyber_arche from engine/ with a dev extra (pytest, ruff, fastapi, uvicorn, pydantic, python-multipart, anthropic); a .gitignore (cases/, .env, .venv, node_modules, fixtures/out/); .env.example; stub modules with docstrings; engine/cyber_arche/models.py with dataclasses mirroring "Data contracts"; and api/main.py with a /api/health route. In web/, create a Vite + React + TypeScript + Tailwind app with web/src/contracts.ts mirroring the contracts and realistic mock JSON in web/src/mocks/.
-
-Then write fixtures/make_fixtures.py that builds three databases in fixtures/out/, each with an expected.json listing live rows and deleted rows with their values:
-
-- Rollback-journal mode, a messages table, 20 inserts and 5 deletes (the newest row plus middle rows).
-- WAL mode with wal_autocheckpoint=0: inserts, one update and two deletes, with the .db and -wal copied while the connection is still open.
-- secure_delete=ON with several deletions.
-Add pytest smoke tests and run them. Stop and show me the tree and the test output.
-
-#### P1 (format engineer) prompts, in order
-
-- Read BLUEPRINT "SQLite internals reference". Implement varint.py, header.py, page.py and record.py: header fields, page headers, cell pointer arrays, loop-guarded freeblock chains, the unallocated range, every serial type, and a segment map per record. Test against fixtures/out/.
-- Implement btree.py and schema.py: walk table b-trees (0x05 and 0x0D) with overflow chains, build the page-to-table map, read sqlite_master, and derive columns with the in-memory PRAGMA table_info trick. Return live rows as RecoveredRecord with status live and source btree_live. Check against expected.json.
-- Implement carver.py per BLUEPRINT F1: candidate scan in freeblocks, unallocated space and freelist leaf pages; the validator; confidence scoring from "Confidence scoring"; de-duplication with stale_copy. Accept any PageSource so it also runs on WAL page images. Test: every recoverable deleted row in fixture 1 is found, and no live row is labeled deleted.
-- Stretch, only if the hour-6 gate passed: implement reconstruct.py per F7, with a new fixture that deletes a middle row and removes the WAL.
-#### P2 (WAL engineer) prompts, in order
-
-- Read BLUEPRINT "WAL format". Implement wal.py: header parsing and checksum verification for both byte orders, frame iteration with the cumulative checksum, the valid range, the commit list, and old-generation frames tagged unverified. Test on fixture 2 and on a copy with one corrupted byte.
-- Implement snapshot.py (a PageSource overlay for commit k, with the approximate flag) and timeline.py (per-commit diffs keyed by table and rowid, plus time bracketing from timestamp columns). Reuse P1's b-tree and schema functions through PageSource. Test that commits and diffs match expected.json.
-- Implement coverup.py findings CU1 to CU6 per F4, with "consistent with" wording and evidence offsets. Test: fixture 3 fires CU1 and CU2; fixture 2 fires neither.
-#### P3 (backend and demo) prompts, in order
-
-- Implement case.py intake (copy, SHA-256, read-only, manifest) and every route in BLUEPRINT "API". Return engine output where it exists and mock data elsewhere. Enable CORS for the Vite dev server.
-- Build the demo backend per F5: demo/seed.py and the /demo routes with one long-lived connection (journal_mode=WAL, wal_autocheckpoint=0, secure_delete=OFF), one commit per action, a 500-character cap, /demo/seize copying .db, -wal and -shm while the connection is open, and /demo/reset. Test: seizing after a delete yields a WAL whose earlier frame still contains the deleted text.
-- Build fixtures/cases/backup: a scripted storyline database that switches secure_delete on partway through, with one edit and several deletes. Cache an AI summary JSON for offline use.
-- Implement api/summary.py per F6 (citation validation, CYBER_ARCHE_MODEL environment variable) and the /report HTML export that re-verifies hashes.
-#### P4 (frontend and pitch) prompts, in order
-
-- Read BLUEPRINT F3 and F5. Using mocks, build the case header (files and SHA-256), the conversation view with deleted and edited rendering, the plain-table fallback, and a hex viewer that colors segments and shows decoded values on hover.
-- Add the timeline slider (commits, snapshot and changes per commit), the "as of commit" versus "everything recovered" toggle, a findings tab, and a summary tab whose citation chips open the hex viewer. Switch to the live API with VITE_USE_MOCKS=0.
-- Build the /demo chat page with send, edit and delete, plus Seize device and Reset buttons; after seizing, open the new case.
-#### Working with the agents
-
-- One agent session per person, on that person's branch, so agents never edit the same files.
-- For any task bigger than one module, ask the agent for a plan first, approve it, then let it implement.
-- Read every diff. Byte-offset bugs are subtle, so insist on tests against real fixtures, not invented bytes.
-- If an agent spends more than 15 minutes on one bug, stop it, have it write a minimal failing test, and cut scope if needed.
-- Paste error output and file paths into prompts; name the BLUEPRINT section every time.
